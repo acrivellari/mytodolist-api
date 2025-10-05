@@ -3,10 +3,27 @@
 include_once __DIR__ . '/../Utils/JwtPayload.php';
 
 class JWT {
+    private static string $secretKeyPath = __DIR__ . '/../../config/jwtSecret.json';
     private static string $secretKey;
 
-    public static function setSecretKey(string $key): void {
-        self::$secretKey = $key;
+    public static function setSecretKey(): void {
+
+        // Check if the config file exists
+        if (!file_exists(JWT::$secretKeyPath)) {
+            throw new Exception("Configuration file not found");
+        }
+
+        // Read and decode the JSON content
+        $jsonContent = file_get_contents(JWT::$secretKeyPath);
+        $config = json_decode($jsonContent, true);
+
+        // Validate the decoded configuration
+        if ($config === null || !isset($config['auth']) || !ArrayUtils::checkIfValueIsString($config['auth'], 'jwt_secret_key')) {
+            throw new Exception("Invalid or incomplete JSON configuration.");
+        }
+
+        // Extract credentials
+        self::$secretKey = $config['auth']['jwt_secret_key'];
     }
 
     /**

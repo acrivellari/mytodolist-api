@@ -22,7 +22,7 @@ include_once __DIR__ . '/../ApiProject/src/Controllers/DTOs/Shared/Created201Res
 $mysqlConnection = null;
 $sqliteConnection = null;
 try {
-    JWT::setSecretKey('prova123');
+    JWT::setSecretKey();
     
     $mysqlConnection = MySqlDbConnection::createConnection();
     $sqliteConnection = SqLiteDbConnection::createConnection();

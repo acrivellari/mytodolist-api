@@ -1,2 +1,3 @@
 ApiProject/config/dbConfig.json
+ApiProject/config/jwtSecret.json
 .vscode
