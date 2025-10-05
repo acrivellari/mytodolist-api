@@ -1,0 +1,1 @@
+INSERT INTO dev.users (username, name, surname, password) VALUES ('evilcrive', 'Alberto', 'Crivellari', '71bc2adc79fc1e12e02dad6073a72efdcb4417d47bb39bc3b15bb758ffcb4f59');

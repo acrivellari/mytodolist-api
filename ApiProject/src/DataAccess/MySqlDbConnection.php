@@ -5,12 +5,12 @@ class MySqlDbConnection
     private static string $configPath = __DIR__ . '/../../config/dbConfig.json';
 
     /**
-     * Creates and returns a new PDO connection: object to connect PHP to a db
+     * Creates and returns a new mysqli connection: object to connect PHP to a mysql db
      *
-     * @return PDO
-     * @throws Exception
+     * @return mysqli
+     * @throws mysqli_sql_exception
      */
-    public static function createConnection(): PDO
+    public static function createConnection(): mysqli
     {
         // Check if the config file exists
         if (!file_exists(MySqlDbConnection::$configPath)) {
@@ -36,13 +36,11 @@ class MySqlDbConnection
         // Create a DSN string
         $dsn = "mysql:host={$host};dbname={$dbname};charset={$charset}";
 
-        try {
-            $pdo = new PDO($dsn, $username, $password);
-            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-            $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-            return $pdo;
-        } catch (PDOException $e) {
-            throw new Exception("Database connection failed: " . $e->getMessage());
+        $mysqli = new mysqli($host, $username, $password, $dbname);
+        if ($mysqli->connect_error) {
+            throw new mysqli_sql_exception("{$mysqli->connect_error} ({$mysqli->connect_errno})");
         }
+
+        return $mysqli;
     }
 }
