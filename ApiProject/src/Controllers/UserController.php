@@ -8,10 +8,12 @@ include_once __DIR__ . '/../DataAccess/Repositories/UsersRepository.php';
 
 class UserController {
 
+    private UsersRepository $usersRepository;
+
     /**
      * Routes mapping for users endpoints
      */
-    public static array $routes = [
+    private static array $routes = [
         'POST' => [
             'users/login' => [UserController::class, 'loginWithCredentials'],
             'users/signup' => [UserController::class, 'createNewUser']
@@ -22,14 +24,22 @@ class UserController {
         ]
     ];
 
-    public static function main($url): void {
-        $urlParts = explode(
-            '/', 
-            trim ($url, '/'), 
-            2
-        );
+    /**
+     * Inject users repository, through DI
+     * @param UsersRepository $usersRepository
+     */
+    public function __construct(UsersRepository $usersRepository) {
+        $this->usersRepository = $usersRepository;
+    }
 
-        $callable = UserController::$routes[$_SERVER['REQUEST_METHOD']][$urlParts[1]] ?? null;
+    public function dispatch($fullUri, $requestMethod): void {
+        $requestUri = explode(
+            '/', 
+            trim ($fullUri, '/'), 
+            2
+        )[1];
+
+        $callable = UserController::$routes[$requestMethod][$requestUri] ?? null;
 
         if (!$callable) {
             ResponseBuilder::outputResponse(new NotFoundResponse());
@@ -40,23 +50,23 @@ class UserController {
         }
     }
 
-    public static function loginWithToken(): void { 
+    public function loginWithToken(): void { 
         $tokenDecoded = JWT::extractFromHeaders(getallheaders());
         if ($tokenDecoded === null) {
             ResponseBuilder::outputResponse(new InvalidTokenResponse());
         } else {
-            $userFromDb = UsersRepository::getUserInfoById($tokenDecoded->userId);
+            $userFromDb = $this->usersRepository->getUserInfoById($tokenDecoded->userId);
             $response = new GetUserResponse($tokenDecoded, $userFromDb);
             ResponseBuilder::outputResponse($response);
         }
     }
 
-    public static function loginWithCredentials(): void {
+    public function loginWithCredentials(): void {
         $id = null;
         try {
             $rawJson = file_get_contents('php://input');
             $dto = DoLoginRequest::fromRawJson($rawJson);
-            $id = UsersRepository::getId($dto->username, $dto->password);
+            $id = $this->usersRepository->getId($dto->username, $dto->password);
 
             if ($id === null) {
                 ResponseBuilder::outputResponse(new InvalidCredentialsResponse());
@@ -81,7 +91,7 @@ class UserController {
         }
     }
 
-    public static function createNewUser(): void {
+    public function createNewUser(): void {
         $dto = null;
         try {
             $rawJson = file_get_contents('php://input');
@@ -90,14 +100,16 @@ class UserController {
         catch(RuntimeException) {
             $response = new MalformedJsonResponse();
             ResponseBuilder::outputResponse($response);
+            return;
         }
         catch (MyValidationException $ex) {
             $response = new ValidationFailedResponse($ex->getMessage());
             ResponseBuilder::outputResponse($response);
+            return;
         }
         
         try {
-            $id = UsersRepository::insertUser($dto->username, $dto->name, $dto->surname, $dto->password, $dto->email);
+            $id = $this->usersRepository->insertUser($dto->username, $dto->name, $dto->surname, $dto->password, $dto->email);
             if ($id == null) {
                 ResponseBuilder::outputResponse(new Conflict409Response());
             } else {
