@@ -37,3 +37,9 @@ catch (\Throwable $e) {
     // Global exception handling
     ResponseBuilder::outputResponse(new InternalServerErrorResponse($e->getMessage()));
 }
+finally {
+    if ($mysqlConnection !== null) {
+        $mysqlConnection->close();
+    }
+    $sqliteConnection = null; 
+}
