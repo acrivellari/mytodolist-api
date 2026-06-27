@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Unauthorized response (401) for token invalid
+ */
 class InvalidTokenResponse extends IResponse {
     public function getHttpCode(): int { 
         return 401; 

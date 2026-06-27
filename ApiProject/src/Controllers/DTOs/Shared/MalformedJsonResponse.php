@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Bad request due to request body response with status code 400
+ */
 class MalformedJsonResponse extends IResponse {
     public function getHttpCode(): int {
         return 400;

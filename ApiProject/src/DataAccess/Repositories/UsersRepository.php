@@ -93,8 +93,9 @@ class UsersRepository {
         catch (mysqli_sql_exception $ex) {
             if ($ex->getCode() == 1062) {
                 return null;
+            } else {
+                throw $ex;
             }
-            throw $ex;
         }
         catch (\Throwable $ex) {
             throw $ex;

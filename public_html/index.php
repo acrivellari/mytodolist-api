@@ -7,6 +7,7 @@ include_once __DIR__ . '/../ApiProject/src/Controllers/DTOs/IResponse.php';
 include_once __DIR__ . '/../ApiProject/src/Controllers/DTOs/Shared/InternalServerErrorResponse.php';
 include_once __DIR__ . '/../ApiProject/src/Controllers/Router.php';
 include_once __DIR__ . '/../ApiProject/src/Controllers/UserController.php';
+include_once __DIR__ . '/../ApiProject/src/Controllers/SwaggerController.php';
 include_once __DIR__ . '/../ApiProject/src/Utils/Jwt.php';
 include_once __DIR__ . '/../ApiProject/src/Controllers/DTOs/Shared/NotFoundResponse.php';
 include_once __DIR__ . '/../ApiProject/src/Controllers/DTOs/Shared/InvalidTokenResponse.php';
@@ -30,8 +31,9 @@ try {
     $userRepo = new UsersRepository($mysqlConnection);
 
     $userController = new UserController($userRepo);
+    $swaggerController = new SwaggerController();
 
-    $router = new Router($userController);
+    $router = new Router($userController, $swaggerController);
 }
 catch (\Throwable $e) {
     // Global exception handling

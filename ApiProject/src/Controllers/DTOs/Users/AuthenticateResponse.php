@@ -1,5 +1,7 @@
 <?php
-
+/**
+ * Success (200) response for users/authenticate endpoint
+ */
 class AuthenticateResponse extends IResponse {
     public string $token;
     public string $tokenType = 'Bearer';

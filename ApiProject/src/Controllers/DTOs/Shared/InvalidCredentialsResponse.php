@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Unauthorized response (401) for invalid credentials
+ */
 class InvalidCredentialsResponse extends IResponse {
     public function getHttpCode(): int { 
         return 401; 

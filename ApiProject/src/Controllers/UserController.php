@@ -6,23 +6,12 @@ include_once __DIR__ . '/../Controllers/DTOs/Users/DoLoginRequest.php';
 include_once __DIR__ . '/../Controllers/DTOs/Users/SignupRequest.php';
 include_once __DIR__ . '/../DataAccess/Repositories/UsersRepository.php';
 
+/**
+ * Controller for users endpoints
+ */
 class UserController {
 
     private UsersRepository $usersRepository;
-
-    /**
-     * Routes mapping for users endpoints
-     */
-    private static array $routes = [
-        'POST' => [
-            'users/login' => [UserController::class, 'loginWithCredentials'],
-            'users/signup' => [UserController::class, 'createNewUser']
-        ],
-        'GET' => [
-            'users' => [UserController::class, 'loginWithToken'],
-            'users/validate' => [UserController::class, 'loginWithToken']
-        ]
-    ];
 
     /**
      * Inject users repository, through DI
@@ -32,24 +21,33 @@ class UserController {
         $this->usersRepository = $usersRepository;
     }
 
-    public function dispatch($fullUri, $requestMethod): void {
-        $requestUri = explode(
-            '/', 
-            trim ($fullUri, '/'), 
-            2
-        )[1];
-
-        $callable = UserController::$routes[$requestMethod][$requestUri] ?? null;
-
-        if (!$callable) {
-            ResponseBuilder::outputResponse(new NotFoundResponse());
-        } else if (!is_callable($callable)) {
-            ResponseBuilder::outputResponse(new InternalServerErrorResponse());
+    /**
+     * Dispatch /api/users endpoints
+     * @param mixed $path
+     * @param mixed $requestMethod
+     * @return void
+     */
+    public function dispatch($path, $requestMethod): void {
+        if ($path == '/api/users/authenticate' && $requestMethod == 'POST') {
+            $this->loginWithCredentials();
+        } else if ($path == '/api/users/signup' && $requestMethod == 'POST') {
+            $this->createNewUser();
+        } else if ($path == '/api/users/validate' && $requestMethod == 'GET') {
+            $this->loginWithToken();
         } else {
-            call_user_func($callable);
+            ResponseBuilder::outputResponse(new NotFoundResponse());
         }
     }
 
+    /**
+     * @openapi
+     * path: /users/validate
+     * method: GET
+     * summary: Get user info, given user jwt token.
+     * header: Authorization | string | optional | Bearer token format
+     * response: 200 | User successfully retrieved
+     * response: 401 | Invalid or absent token
+     */
     public function loginWithToken(): void { 
         $tokenDecoded = JWT::extractFromHeaders(getallheaders());
         if ($tokenDecoded === null) {
@@ -61,6 +59,17 @@ class UserController {
         }
     }
 
+    /**
+     * @openapi
+     * path: /users/authenticate
+     * method: POST
+     * summary: Authenticate using user credentials.
+     * body: username | string | required | The username of the user | JohnDoe
+     * body: password | string | required | The password of the user | jabc123
+     * response: 200 | User successfully authenticated
+     * response: 400 | Bad request
+     * response: 401 | Invalid credentials
+     */
     public function loginWithCredentials(): void {
         $id = null;
         try {
@@ -91,6 +100,21 @@ class UserController {
         }
     }
 
+    /**
+     * @openapi
+     * path: /users/signup
+     * method: POST
+     * summary: Create new user credentials.
+     * body: username | string | required | The username of the user | JohnDoe
+     * body: name | string | required | The name of the user | John
+     * body: surname | string | required | The surname of the user | Doe
+     * body: email | string | optional | The email of the user | john.doe@gmail.com
+     * body: password | string | required | The password of the user | john123
+     * response: 201 | User successfully created
+     * response: 400 | Bad request
+     * response: 401 | Invalid credentials
+     * response: 409 | Conflict: username already exists
+     */
     public function createNewUser(): void {
         $dto = null;
         try {
