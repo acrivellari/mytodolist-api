@@ -30,7 +30,7 @@ class Router {
         } 
 
         if ($foundEndpoint == false) {
-            ResponseBuilder::outputResponse(new NotFoundResponse());
+            $swaggerController->getSwagger();
         }
     }
 }
